@@ -26,10 +26,11 @@ export default function Rentals() {
       let results = data.results || [];
       
       // Local fallback filtering because API ignores query params
-      if (filters.bedroom) results = results.filter((r: any) => String(r.bedroom) === String(filters.bedroom));
+      if (filters.bhk) results = results.filter((r: any) => String(r.bedroom) === String(filters.bhk));
       if (filters.locality) results = results.filter((r: any) => r.locality?.toLowerCase().includes(filters.locality.toLowerCase()));
-      if (filters.price_min) results = results.filter((r: any) => r.price >= Number(filters.price_min));
-      if (filters.price_max) results = results.filter((r: any) => r.price <= Number(filters.price_max));
+      // Note: price filters aren't in the state for rentals, so we ignore them if they don't exist
+      if ((filters as any).min_price) results = results.filter((r: any) => r.price >= Number((filters as any).min_price));
+      if ((filters as any).max_price) results = results.filter((r: any) => r.price <= Number((filters as any).max_price));
       if (filters.furnishing) results = results.filter((r: any) => r.furnishing === filters.furnishing);
 
       setRentals(results);
