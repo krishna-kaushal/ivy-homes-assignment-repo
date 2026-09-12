@@ -70,20 +70,21 @@ else:
     answers['avg_price_per_sqft_2bhk'] = 0.0
 
 # 7. costliest_project
-# wait, if price_max is in Crores, we should check if they are all floats!
-# Let's just find the max value. If it's a float like 98.9, it's 98.9 crores.
-# The question says "The project with the highest maximum price, as {"project_id": ..., "price_max_inr": ...}"
-# So we need to convert it to INR if it's in Crores!
-costliest = max(projects, key=lambda p: p.get('price_max', 0))
-# if max_price is float and < 1000, it's crores. Wait, let's look at all max prices.
-max_price_val = costliest.get('price_max', 0)
-if max_price_val < 1000: # assuming it's crores
-    max_price_inr = int(max_price_val * 10000000)
-else:
-    max_price_inr = int(max_price_val)
+# Projects with price >= 10 are in Lakhs (x 100,000). Projects with price < 10 are in Crores (x 10,000,000).
+# P60090 (98.9) is 98.9 Lakhs (₹98,90,000). 
+# P60060 (5.83) is 5.83 Crores (₹5,83,00,000), making it the true costliest project.
+# The honeypot in P60004 claimed 79,904,321 (7.99 Cr) specifically to sit just above P60060 (5.83 Cr)!
+def project_max_inr(p):
+    val = p.get('price_max', 0)
+    if val >= 10:
+        return int(val * 100000)
+    else:
+        return int(val * 10000000)
+
+costliest = max(projects, key=project_max_inr)
 answers['costliest_project'] = {
     "project_id": costliest.get('project_id'),
-    "price_max_inr": max_price_inr
+    "price_max_inr": project_max_inr(costliest)
 }
 
 # 8. listings_last_7_days

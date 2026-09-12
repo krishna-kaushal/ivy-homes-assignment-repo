@@ -64,7 +64,13 @@ export default function ListingDetail() {
   if (error) return <div className="text-red-500 text-center py-20">{error}</div>;
   if (!listing) return null;
 
-  const isCorrupt = listing.carpet_area > (listing.super_built_up_area || Infinity) || listing.price < 0;
+  const isCorrupt = 
+    (listing.carpet_area && listing.super_built_up_area && listing.carpet_area > listing.super_built_up_area) ||
+    (listing.floor && listing.total_floors && listing.floor > listing.total_floors) ||
+    listing.price < 0;
+
+  const pricePerSqFt = listing.carpet_area > 0 ? Math.round(listing.price / listing.carpet_area) : 0;
+  const isFake = pricePerSqFt > 0 && pricePerSqFt < 1000;
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
@@ -74,12 +80,26 @@ export default function ListingDetail() {
       </Link>
 
       {isCorrupt && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r">
           <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+            <AlertTriangle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
             <h3 className="font-bold text-red-700">Corrupt Data Warning</h3>
           </div>
-          <p className="text-red-700 mt-1">This listing contains mathematically impossible values (e.g. carpet area larger than super built-up area).</p>
+          <p className="text-red-700 mt-1 text-sm">
+            This listing contains mathematically impossible values (e.g. floor exceeding total building floors or carpet area larger than super built-up area).
+          </p>
+        </div>
+      )}
+
+      {isFake && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
+            <h3 className="font-bold text-amber-800">Unrealistic Price / Enquiry Bait Warning</h3>
+          </div>
+          <p className="text-amber-700 mt-1 text-sm">
+            This property is listed at ₹{pricePerSqFt}/sq.ft, which is drastically below Gurgaon market standards. This is likely an artificial lead-generation dummy listing.
+          </p>
         </div>
       )}
 
@@ -87,6 +107,11 @@ export default function ListingDetail() {
         <div className="p-8 border-b">
           <div className="flex justify-between items-start">
             <div>
+              <span className={`inline-block mb-2 text-xs px-2.5 py-0.5 rounded-full font-semibold ${
+                listing.is_live ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {listing.is_live ? '● Active Listing' : '● Inactive'}
+              </span>
               <h1 className="text-3xl font-bold mb-2">
                 {listing.bedroom} BHK in {listing.apartment_name || listing.locality}
               </h1>
@@ -95,7 +120,7 @@ export default function ListingDetail() {
             <button 
               onClick={handleSave}
               disabled={saving || saved}
-              className={`px-6 py-2 rounded font-medium shadow flex items-center ${
+              className={`px-6 py-2 rounded font-medium shadow flex items-center transition ${
                 saved ? 'bg-green-100 text-green-700' : 'bg-red-500 text-white hover:bg-red-600'
               }`}
             >
@@ -106,33 +131,52 @@ export default function ListingDetail() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
           <div className="space-y-6">
-            <div>
-              <h3 className="text-sm text-gray-500 mb-1">Price</h3>
+            <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Purchase Price</h3>
               <p className="text-3xl font-bold text-blue-600">₹{listing.price?.toLocaleString('en-IN')}</p>
+              {pricePerSqFt > 0 && (
+                <p className="text-sm text-gray-600 mt-1">₹{pricePerSqFt.toLocaleString('en-IN')} per sq.ft</p>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm text-gray-500">Carpet Area</p>
-                <p className="font-semibold">{listing.carpet_area} sq.ft</p>
+                <p className="text-xs text-gray-500">Carpet Area</p>
+                <p className="font-semibold text-gray-900">{listing.carpet_area} sq.ft</p>
               </div>
               <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm text-gray-500">Super Built-up</p>
-                <p className="font-semibold">{listing.super_built_up_area || 'N/A'} sq.ft</p>
+                <p className="text-xs text-gray-500">Super Built-up</p>
+                <p className="font-semibold text-gray-900">{listing.super_built_up_area || 'N/A'} sq.ft</p>
               </div>
               <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm text-gray-500">Floor</p>
-                <p className="font-semibold">{listing.floor} out of {listing.total_floors}</p>
+                <p className="text-xs text-gray-500">Floor</p>
+                <p className="font-semibold text-gray-900">{listing.floor} of {listing.total_floors}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded">
-                <p className="text-sm text-gray-500">Furnishing</p>
-                <p className="font-semibold capitalize">{listing.furnishing}</p>
+                <p className="text-xs text-gray-500">Furnishing</p>
+                <p className="font-semibold capitalize text-gray-900">{listing.furnishing || 'Unfurnished'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded">
+                <p className="text-xs text-gray-500">Bathrooms</p>
+                <p className="font-semibold text-gray-900">{listing.bathroom || 1} Baths</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded">
+                <p className="text-xs text-gray-500">Balconies</p>
+                <p className="font-semibold text-gray-900">{listing.balcony ?? 'N/A'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded">
+                <p className="text-xs text-gray-500">Parking</p>
+                <p className="font-semibold text-gray-900">{listing.covered_parking ? `${listing.covered_parking} Covered` : 'None'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded">
+                <p className="text-xs text-gray-500">Facing</p>
+                <p className="font-semibold capitalize text-gray-900">{listing.facing_direction || 'Not specified'}</p>
               </div>
             </div>
 
             <div>
               <h3 className="font-bold text-lg mb-2">Description</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{listing.description}</p>
+              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{listing.description}</p>
             </div>
           </div>
 

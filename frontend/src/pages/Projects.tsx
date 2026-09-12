@@ -95,9 +95,7 @@ export default function Projects() {
                   <div>
                     <p className="text-sm text-gray-500">Price Range</p>
                     <p className="font-medium text-blue-600">
-                      {/* Price in Crores -> format properly if < 1000 */}
-                      ₹{item.price_min < 1000 ? `${item.price_min} Cr` : item.price_min?.toLocaleString('en-IN')} - 
-                      {item.price_max < 1000 ? ` ${item.price_max} Cr` : ` ₹${item.price_max?.toLocaleString('en-IN')}`}
+                      {item.price_min ? (item.price_min >= 10 ? `₹${item.price_min} L` : `₹${item.price_min} Cr`) : 'N/A'} – {item.price_max ? (item.price_max >= 10 ? `₹${item.price_max} L` : `₹${item.price_max} Cr`) : 'N/A'}
                     </p>
                   </div>
                   <div>

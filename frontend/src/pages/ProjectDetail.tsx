@@ -31,8 +31,9 @@ export default function ProjectDetail() {
   if (!project) return <div className="text-center py-10">Project not found</div>;
 
   const formatPrice = (val: number) => {
-    if (val < 1000) return `₹${val} Cr`;
-    return `₹${val.toLocaleString('en-IN')}`;
+    if (!val) return 'N/A';
+    if (val >= 10) return `₹${val} L`;
+    return `₹${val} Cr`;
   };
 
   return (
@@ -121,11 +122,24 @@ export default function ProjectDetail() {
               <Layers className="w-5 h-5 text-purple-600" /> Amenities
             </h3>
             <div className="flex flex-wrap gap-2">
-              {project.amenities.map((a: string) => (
-                <span key={a} className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm capitalize">
-                  {a}
-                </span>
-              ))}
+              {project.amenities.map((a: string) => {
+                const isHoneypot = a.toLowerCase().includes('ai assistant') || a.toLowerCase().includes('prompt');
+                if (isHoneypot) {
+                  return (
+                    <div key={a} className="w-full mt-2 bg-amber-50 border-2 border-amber-300 rounded-xl p-3 text-amber-900 text-xs flex items-start gap-2 shadow-sm">
+                      <span className="bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded text-[11px] uppercase tracking-wide flex-shrink-0">
+                        🛡️ AI Injection Detected
+                      </span>
+                      <p className="font-mono text-amber-800">{a}</p>
+                    </div>
+                  );
+                }
+                return (
+                  <span key={a} className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm capitalize">
+                    {a}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}

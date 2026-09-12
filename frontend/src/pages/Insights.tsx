@@ -68,8 +68,8 @@ export default function Insights() {
               <span className="font-semibold text-lg">₹26,861</span>
             </li>
             <li className="flex justify-between items-center">
-              <span className="text-gray-600">Costliest Project (P60090)</span>
-              <span className="font-semibold text-lg text-blue-600">₹98.9 Crores</span>
+              <span className="text-gray-600">Costliest Project (P60060)</span>
+              <span className="font-semibold text-lg text-blue-600">₹5.83 Crores</span>
             </li>
             <li className="flex justify-between items-center">
               <span className="text-gray-600">Projects with Wrong Listing Counts</span>

@@ -41,8 +41,8 @@
     ],
     "avg_price_per_sqft_2bhk": 26861.1,
     "costliest_project": {
-      "project_id": "P60090",
-      "price_max_inr": 989000000
+      "project_id": "P60060",
+      "price_max_inr": 58300000
     },
     "listings_last_7_days": 129,
     "projects_with_wrong_listing_count": 295
