@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api';
-import { Building, MapPin, Calendar, Shield, Layers, Home } from 'lucide-react';
+import { ArrowLeft, Building, MapPin, Calendar, Shield, Layers, Home } from 'lucide-react';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -37,8 +37,10 @@ export default function ProjectDetail() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <Link to="/projects" className="text-blue-600 hover:underline mb-4 inline-block">← Back to Projects</Link>
+    <div className="max-w-4xl mx-auto pb-12">
+      <Link to="/projects" className="inline-flex items-center text-blue-600 hover:underline mb-6">
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Projects</Link>
 
       {/* Hero Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-t-lg p-8 text-white">
