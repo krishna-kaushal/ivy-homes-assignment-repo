@@ -110,6 +110,8 @@ export const api = {
   },
 
   getListing: (id: string) => fetchAPI(`/v1/listings/${id}`),
+
+  getRental: (id: string) => fetchAPI(`/v1/rentals/${id}`),
   
   getRentals: (params: Record<string, any> = {}) => {
     const searchParams = new URLSearchParams();

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 
 export default function Rentals() {
@@ -105,7 +106,7 @@ export default function Rentals() {
                   <p className="text-gray-600 text-sm">Furnishing: {item.furnishing}</p>
                 </div>
                 <div className="p-4 bg-gray-50 flex justify-between items-center">
-                  <button className="text-gray-400 cursor-not-allowed">Details Unavailable</button>
+                  <Link to={`/rental/${item.listing_id}`} className="text-blue-600 hover:underline">View Details</Link>
                   <button 
                     disabled
                     className="text-gray-400 cursor-not-allowed font-medium"
