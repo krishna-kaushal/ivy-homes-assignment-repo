@@ -31,7 +31,16 @@ export default function Listings() {
         }),
         api.getFavourites().catch(() => ({ results: [] }))
       ]);
-      setListings(data.results || []);
+      let results = data.results || [];
+      
+      // Local fallback filtering because API ignores query params
+      if (filters.bedroom) results = results.filter((r: any) => String(r.bedroom) === String(filters.bedroom));
+      if (filters.locality) results = results.filter((r: any) => r.locality?.toLowerCase().includes(filters.locality.toLowerCase()));
+      if (filters.price_min) results = results.filter((r: any) => r.price >= Number(filters.price_min));
+      if (filters.price_max) results = results.filter((r: any) => r.price <= Number(filters.price_max));
+      if (filters.furnishing) results = results.filter((r: any) => r.furnishing === filters.furnishing);
+
+      setListings(results);
       setHasMore(data.has_more);
       
       const favSet = new Set<string>((favData.results || []).map((f: any) => f.listing_id));

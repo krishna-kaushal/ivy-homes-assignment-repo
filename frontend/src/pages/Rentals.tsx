@@ -23,7 +23,16 @@ export default function Rentals() {
         limit: LIMIT,
         ...filters
       });
-      setRentals(data.results || []);
+      let results = data.results || [];
+      
+      // Local fallback filtering because API ignores query params
+      if (filters.bedroom) results = results.filter((r: any) => String(r.bedroom) === String(filters.bedroom));
+      if (filters.locality) results = results.filter((r: any) => r.locality?.toLowerCase().includes(filters.locality.toLowerCase()));
+      if (filters.price_min) results = results.filter((r: any) => r.price >= Number(filters.price_min));
+      if (filters.price_max) results = results.filter((r: any) => r.price <= Number(filters.price_max));
+      if (filters.furnishing) results = results.filter((r: any) => r.furnishing === filters.furnishing);
+
+      setRentals(results);
       setHasMore(data.has_more);
     } catch (err) {
       console.error(err);
