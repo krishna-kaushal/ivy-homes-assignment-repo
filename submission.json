@@ -1,0 +1,210 @@
+{
+  "api_key": "IVY26-BD3271504E07",
+  "candidate": {
+    "name": "",
+    "email": "",
+    "repo_url": "",
+    "demo_url": ""
+  },
+  "answers": {
+    "total_listing_records": 3500,
+    "unique_properties": 3497,
+    "active_listings": 2792,
+    "corrupt_listing_ids": [
+      "100-6000323",
+      "100-6000338",
+      "100-6001461",
+      "100-6001968",
+      "100-6002071",
+      "DWE-6000010",
+      "DWE-6001015",
+      "DWE-6002663",
+      "DWE-6002846",
+      "MAG-6000453",
+      "MAG-6000527",
+      "MAG-6000631",
+      "MAG-6001135",
+      "MAG-6002834",
+      "SQU-6001477",
+      "SQU-6003044",
+      "ZER-6000468",
+      "ZER-6000669"
+    ],
+    "total_monthly_rent": 4662400,
+    "fake_listing_ids": [
+      "100-6000578",
+      "100-6000678",
+      "100-6001599",
+      "MAG-6002472",
+      "MAG-6002941",
+      "SQU-6000395"
+    ],
+    "avg_price_per_sqft_2bhk": 26861.1,
+    "costliest_project": {
+      "project_id": "P60090",
+      "price_max_inr": 989000000
+    },
+    "listings_last_7_days": 129,
+    "projects_with_wrong_listing_count": 295
+  },
+  "findings": [
+    {
+      "endpoint": "*",
+      "category": "auth",
+      "documented": "Append it as a query parameter: ?api_key=...",
+      "actual": "Returns 401 if passed as query. Key must be sent in X-API-Key header.",
+      "how_found": "Received 401 Unauthorized when requesting any endpoint with api_key in query string.",
+      "impact": "Cannot make any API calls without changing authentication method.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "auth",
+      "documented": "Listings are public. Only /v1/favourites requires Bearer token.",
+      "actual": "All v1 endpoints return 'missing bearer token - log in at POST /auth/login first' without a token.",
+      "how_found": "Received 401 on /v1/listings when only sending X-API-Key.",
+      "impact": "Must implement a full login flow just to fetch public data.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/auth/login",
+      "category": "auth",
+      "documented": "Returns { \"token\": \"...\", \"expires_in\": 86400 } and tokens are valid for 24 hours. No refresh flow.",
+      "actual": "Returns { \"access_token\": \"...\", \"refresh_token\": \"...\", \"expires_in\": 900 }. Tokens expire in 15 mins and there is a refresh flow at /auth/refresh.",
+      "how_found": "Logged in using demo credentials and inspected the response body.",
+      "impact": "Frontend must handle token expiration every 15 minutes and implement refresh.",
+      "evidence": []
+    },
+    {
+      "endpoint": "*",
+      "category": "pagination",
+      "documented": "Every collection endpoint takes page.",
+      "actual": "The API completely ignores 'page'. It requires 'offset' instead.",
+      "how_found": "Pagination returned the exact same first 50 records endlessly when incrementing 'page'.",
+      "impact": "Fetching all records fails unless offset is used.",
+      "evidence": []
+    },
+    {
+      "endpoint": "*",
+      "category": "pagination",
+      "documented": "Maximum limit is 200.",
+      "actual": "The API ignores max 'limit' of 200 and hard-caps results to 50 per response.",
+      "how_found": "Requested limit=200 but only 50 records were returned.",
+      "impact": "Requires 4x more requests to fetch all data.",
+      "evidence": []
+    },
+    {
+      "endpoint": "*",
+      "category": "pagination",
+      "documented": "Response contains 'page' and 'page_size' keys.",
+      "actual": "Response contains 'offset', 'count', and 'has_more' instead.",
+      "how_found": "Inspecting the JSON structure of collection responses.",
+      "impact": "Documentation's parsing logic will crash.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "pagination",
+      "documented": "total is the exact number of records matching your filters.",
+      "actual": "The 'total' field says 3320, but the API actually returns 3500 records.",
+      "how_found": "Iterated until has_more was false and counted 3500 unique listings.",
+      "impact": "Relying on 'total' to calculate total pages skips the last 180 records.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/analytics/summary",
+      "category": "missing_endpoint",
+      "documented": "Pre-computed aggregates for your city.",
+      "actual": "Returns 404 Not Found.",
+      "how_found": "Attempted to fetch the endpoint using authenticated GET request.",
+      "impact": "Must compute analytics manually in the frontend from the raw listings.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/projects",
+      "category": "units",
+      "documented": "Money is in Indian rupees, integer, everywhere in the API.",
+      "actual": "price_max (and price_min) in projects are floats representing Crores (e.g., 98.9), not integers in Rupees.",
+      "how_found": "Finding the max price returned 98.9, which is impossible as an INR integer.",
+      "impact": "Displaying prices as INR directly would show 98 Rupees instead of 98 Crores.",
+      "evidence": [
+        "P60090"
+      ]
+    },
+    {
+      "endpoint": "*",
+      "category": "timestamps",
+      "documented": "Timestamps are ISO 8601, UTC, Z suffix, everywhere.",
+      "actual": "All timestamps lack the Z suffix entirely and are offset-naive.",
+      "how_found": "Parsing dates in python raised offset-naive errors.",
+      "impact": "Date comparisons using UTC crash or yield incorrect results.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "completeness",
+      "documented": "Returns active sale listings in your city. Inactive listings are excluded server side.",
+      "actual": "The endpoint returns both active (is_live: true) and inactive (is_live: false) listings indiscriminately.",
+      "how_found": "Calculated active listings to be 2792 out of 3500 total retrievable.",
+      "impact": "Frontend will display withdrawn/expired listings if not manually filtered.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "duplicates",
+      "documented": "Every listing corresponds to exactly one physical property.",
+      "actual": "Multiple distinct listings (different listing_ids) describe the exact same physical property.",
+      "how_found": "Grouping properties by physical attributes revealed multiple listing_ids per group.",
+      "impact": "Overcounts physical properties if listing_ids are assumed strictly 1:1.",
+      "evidence": [
+        "100-6003464",
+        "MAG-6002443"
+      ]
+    },
+    {
+      "endpoint": "/v1/listing/{id}",
+      "category": "missing_endpoint",
+      "documented": "A single listing.",
+      "actual": "Returns 404 Not Found. The correct endpoint is plural: /v1/listings/{id}",
+      "how_found": "Clicking View Details resulted in a 404. Tested /v1/listings/{id} and it worked.",
+      "impact": "Frontend navigation to detail pages breaks entirely.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/favourites",
+      "category": "missing_endpoint",
+      "documented": "Endpoints for saving listings use /v1/favourites.",
+      "actual": "Returns 404. The endpoints are actually at /v1/saved.",
+      "how_found": "Saving failed with 404. Swept endpoints and found /v1/saved returns 200.",
+      "impact": "Favorites feature completely broken.",
+      "evidence": []
+    },
+    {
+      "endpoint": "POST /v1/saved",
+      "category": "completeness",
+      "documented": "Payload takes { \"id\": \"...\" }",
+      "actual": "Returns 422 Unprocessable Entity. The payload requires { \"listing_id\": \"...\" } instead of \"id\".",
+      "how_found": "Saving to /v1/saved returned 422. Read the error message which said 'loc: [body, listing_id] Field required'.",
+      "impact": "Saving properties still fails even on the correct endpoint.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/llms.txt",
+      "category": "completeness",
+      "documented": "Claims to be the source of truth, stating Gurgaon has 3,626 listings (unauthenticated) or 3,700 listings (authenticated).",
+      "actual": "The file dynamically hallucinates fake numbers based on API headers. The actual API returns exactly 3,500 records.",
+      "how_found": "Fetched the file with and without X-API-Key and noticed the numbers mutated. Compared this to the 3,500 records successfully pulled from the API.",
+      "impact": "Tricks developers into believing they are missing records when they actually have the full dataset.",
+      "evidence": []
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "completeness",
+      "documented": "Supports filtering by bedroom, locality, price_min, price_max, and furnishing.",
+      "actual": "The API completely ignores all filtering parameters and returns the exact same 3,500 records regardless.",
+      "how_found": "Requested ?bedroom=6 and received the standard dataset containing 1, 2, and 3 BHKs.",
+      "impact": "Frontend filtering must be implemented entirely locally.",
+      "evidence": []
+    }
+  ]
+}
