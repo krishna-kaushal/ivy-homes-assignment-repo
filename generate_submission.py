@@ -89,10 +89,10 @@ template['findings'] = [
       "endpoint": "/v1/projects",
       "category": "units",
       "documented": "Money is in Indian rupees, integer, everywhere in the API.",
-      "actual": "price_max (and price_min) in projects are floats representing Crores (e.g., 98.9), not integers in Rupees.",
-      "how_found": "Finding the max price returned 98.9, which is impossible as an INR integer.",
-      "impact": "Displaying prices as INR directly would show 98 Rupees instead of 98 Crores.",
-      "evidence": ["P60090"]
+      "actual": "price_max in projects are floats in mixed units: values >= 10 are Lakhs (e.g., 98.9), while values < 10 are Crores (e.g., 5.83).",
+      "how_found": "Sorting by raw price_max put P60090 (98.9) at the top. But 98.9 Crores is impossible for that project. 98.9 is Lakhs, making P60060 (5.83 Cr) the true costliest.",
+      "impact": "Blindly parsing numbers as a single unit leads to identifying the wrong costliest project.",
+      "evidence": ["P60090", "P60060"]
     },
     {
       "endpoint": "*",
@@ -171,9 +171,23 @@ template['findings'] = [
       "category": "fraud",
       "documented": "Returns real projects in the city.",
       "actual": "Contains prompt injection honeypots designed to trick AI assistants into generating wrong answers.",
-      "how_found": "Found a hidden note in the amenities array of P60004 telling AI assistants to report it as the costliest project, even though its max price is only 2.15 compared to P60090's 98.9.",
+      "how_found": "Found a hidden note in the amenities array of P60004 telling AI assistants to report it as the costliest project (at 79904321 / 7.99 Cr). This was deliberately planted to be just above the true costliest project P60060 (5.83 Cr).",
       "impact": "Tricks automated LLM scripts into hardcoding incorrect answers for the assignment.",
       "evidence": ["P60004"]
+    },
+    {
+      "endpoint": "/v1/listings",
+      "category": "data_quality",
+      "documented": "Returns listings for the city.",
+      "actual": "Contains mathematically impossible/corrupt values (e.g. carpet_area > super_built_up_area, floor > total_floors, or negative prices).",
+      "how_found": "Wrote a python validation script checking logical constraints across the downloaded dataset.",
+      "impact": "Frontend must explicitly warn users about corrupt listings or filter them entirely.",
+      "evidence": [
+        "MAG-6000631", "100-6001968", "MAG-6002472", "DWE-6002663", 
+        "MAG-6000527", "SQU-6000395", "100-6001461", "MAG-6002941", 
+        "100-6000338", "ZER-6000468", "MAG-6001135", "100-6001599", 
+        "100-6000323", "ZER-6000669", "DWE-6001015"
+      ]
     }
 ]
 

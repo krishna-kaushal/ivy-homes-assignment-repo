@@ -64,10 +64,18 @@ export default function ListingDetail() {
   if (error) return <div className="text-red-500 text-center py-20">{error}</div>;
   if (!listing) return null;
 
-  const isCorrupt = 
-    (listing.carpet_area && listing.super_built_up_area && listing.carpet_area > listing.super_built_up_area) ||
-    (listing.floor && listing.total_floors && listing.floor > listing.total_floors) ||
-    listing.price < 0;
+  let corruptReasons = [];
+  if (listing.carpet_area && listing.super_built_up_area && listing.carpet_area > listing.super_built_up_area) {
+    corruptReasons.push("carpet area is larger than super built-up area");
+  }
+  if (listing.floor && listing.total_floors && listing.floor > listing.total_floors) {
+    corruptReasons.push("floor level exceeds total building floors");
+  }
+  if (listing.price < 0) {
+    corruptReasons.push("price is negative");
+  }
+
+  const isCorrupt = corruptReasons.length > 0;
 
   const pricePerSqFt = listing.carpet_area > 0 ? Math.round(listing.price / listing.carpet_area) : 0;
   const isFake = pricePerSqFt > 0 && pricePerSqFt < 1000;
@@ -86,7 +94,7 @@ export default function ListingDetail() {
             <h3 className="font-bold text-red-700">Corrupt Data Warning</h3>
           </div>
           <p className="text-red-700 mt-1 text-sm">
-            This listing contains mathematically impossible values (e.g. floor exceeding total building floors or carpet area larger than super built-up area).
+            This listing contains mathematically impossible values: <span className="font-semibold">{corruptReasons.join(', ')}</span>.
           </p>
         </div>
       )}

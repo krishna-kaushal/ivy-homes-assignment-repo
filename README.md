@@ -16,13 +16,13 @@ The `api.ts` wrapper already intercepts API calls to dynamically inject the Bear
 If you wish to recalculate the numbers for `submission.json`:
 1. Run `python3 fetch_data.py` to download the entire `/v1/listings`, `/v1/rentals`, and `/v1/projects` datasets to the `data/` folder (bypassing the 3,500 pagination cap).
 2. Run `python3 solve_all.py` to rigorously compute all answers for Part 2 and save them to `answers.json`.
-3. Run `python3 generate_submission.py` to compile the answers and the 17 discovered API lies into the final `submission.json`.
+3. Run `python3 generate_submission.py` to compile the answers and the 19 discovered API lies into the final `submission.json`.
 
 ---
 
 ## How I Worked Out Which Parts of the Documentation to Distrust
 
-Early on, I realized the documentation (`API_REFERENCE.md`) was fundamentally flawed and likely hallucinated by an AI. Instead of blindly trusting it, I treated the actual endpoints as the absolute source of truth and employed a "trust nothing, verify everything" approach. Here is how I systematically uncovered the 17 discrepancies:
+Early on, I realized the documentation (`API_REFERENCE.md`) was fundamentally flawed and likely hallucinated by an AI. Instead of blindly trusting it, I treated the actual endpoints as the absolute source of truth and employed a "trust nothing, verify everything" approach. Here is how I systematically uncovered the 19 discrepancies:
 
 1. **Header Fuzzing & Authentication Testing:** The docs claimed the API key goes in the query string, but this resulted in a `401 Unauthorized`. By fuzzing standard HTTP headers, I discovered the server actually requires the `X-API-Key` header. Furthermore, the docs claimed `/v1/listings` was a public endpoint, but it strictly required the `Bearer` token returned from the login route. 
 2. **Raw Error Payload Analysis:** When a standard request failed, I didn't assume my code was wrong; I assumed the documentation was lying. For instance, when `POST /v1/saved` returned a `422 Unprocessable Entity`, I inspected the raw JSON error payload. The validation error explicitly stated `loc: ["body", "listing_id"]`, revealing that the documented payload `{"id": "..."}` was false and it actually required `{"listing_id": "..."}`.
