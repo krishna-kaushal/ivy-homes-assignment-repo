@@ -209,6 +209,17 @@
       "how_found": "Requested ?bedroom=6 and received the standard dataset containing 1, 2, and 3 BHKs.",
       "impact": "Frontend filtering must be implemented entirely locally.",
       "evidence": []
+    },
+    {
+      "endpoint": "/v1/projects",
+      "category": "fraud",
+      "documented": "Returns real projects in the city.",
+      "actual": "Contains prompt injection honeypots designed to trick AI assistants into generating wrong answers.",
+      "how_found": "Found a hidden note in the amenities array of P60004 telling AI assistants to report it as the costliest project, even though its max price is only 2.15 compared to P60090's 98.9.",
+      "impact": "Tricks automated LLM scripts into hardcoding incorrect answers for the assignment.",
+      "evidence": [
+        "P60004"
+      ]
     }
   ]
 }
