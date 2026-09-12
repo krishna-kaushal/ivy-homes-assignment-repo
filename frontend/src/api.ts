@@ -3,7 +3,38 @@ export const API_KEY = 'IVY26-BD3271504E07';
 
 export const getToken = () => localStorage.getItem('access_token');
 export const setToken = (token: string) => localStorage.setItem('access_token', token);
-export const clearToken = () => localStorage.removeItem('access_token');
+export const getRefreshToken = () => localStorage.getItem('refresh_token');
+export const setRefreshToken = (token: string) => localStorage.setItem('refresh_token', token);
+export const clearToken = () => {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+};
+
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+async function silentRefresh(): Promise<string | null> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  try {
+    const response = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY,
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    setToken(data.access_token);
+    if (data.refresh_token) setRefreshToken(data.refresh_token);
+    return data.access_token;
+  } catch {
+    return null;
+  }
+}
 
 async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const headers = new Headers(options.headers);
@@ -16,17 +47,33 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 
   const url = `${BASE_URL}${endpoint}`;
   
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     ...options,
     headers,
   });
 
-  if (response.status === 401 && endpoint !== '/auth/login') {
-    // Ideally we would hit /auth/refresh here using the refresh_token.
-    // For simplicity, we just clear and force a re-login if it expires.
-    clearToken();
-    window.location.href = '/login';
-    throw new Error('Session expired');
+  // If 401, attempt silent refresh and retry once
+  if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/refresh') {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      refreshPromise = silentRefresh();
+    }
+    const newToken = await refreshPromise;
+    isRefreshing = false;
+    refreshPromise = null;
+
+    if (newToken) {
+      // Retry the original request with the new token
+      const retryHeaders = new Headers(options.headers);
+      retryHeaders.set('X-API-Key', API_KEY);
+      retryHeaders.set('Authorization', `Bearer ${newToken}`);
+      response = await fetch(url, { ...options, headers: retryHeaders });
+    } else {
+      // Refresh failed — force re-login
+      clearToken();
+      window.location.href = '/login';
+      throw new Error('Session expired');
+    }
   }
 
   if (!response.ok) {

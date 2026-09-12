@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, setToken } from '../api';
+import { api, setToken, setRefreshToken } from '../api';
 
 export default function Login() {
   const [email, setEmail] = useState('demo1@ivy.homes');
@@ -19,6 +19,7 @@ export default function Login() {
       // The API lies and returns access_token instead of token!
       if (response.access_token) {
         setToken(response.access_token);
+        if (response.refresh_token) setRefreshToken(response.refresh_token);
         navigate('/');
       } else {
         setError('Invalid login response format');
