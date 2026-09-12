@@ -10,6 +10,7 @@ import Favourites from './pages/Favourites';
 import Insights from './pages/Insights';
 import ListingDetail from './pages/ListingDetail';
 import RentalDetail from './pages/RentalDetail';
+import ProjectDetail from './pages/ProjectDetail';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const token = getToken();
@@ -88,6 +89,7 @@ function App() {
             <Route path="/" element={<PrivateRoute><Listings /></PrivateRoute>} />
             <Route path="/listing/:id" element={<PrivateRoute><ListingDetail /></PrivateRoute>} />
             <Route path="/rental/:id" element={<PrivateRoute><RentalDetail /></PrivateRoute>} />
+            <Route path="/project/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
             <Route path="/rentals" element={<PrivateRoute><Rentals /></PrivateRoute>} />
             <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
             <Route path="/favourites" element={<PrivateRoute><Favourites /></PrivateRoute>} />

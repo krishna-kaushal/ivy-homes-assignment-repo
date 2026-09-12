@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 
 export default function Projects() {
@@ -103,6 +104,9 @@ export default function Projects() {
                     <p className="text-sm text-gray-500">Total Units</p>
                     <p className="font-medium">{item.total_units}</p>
                   </div>
+                </div>
+                <div className="p-4 bg-gray-50 border-t">
+                  <Link to={`/project/${item.project_id}`} className="text-blue-600 hover:underline font-medium">View Details →</Link>
                 </div>
               </div>
             ))}

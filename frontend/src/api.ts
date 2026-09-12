@@ -112,6 +112,8 @@ export const api = {
   getListing: (id: string) => fetchAPI(`/v1/listings/${id}`),
 
   getRental: (id: string) => fetchAPI(`/v1/rentals/${id}`),
+
+  getProject: (id: string) => fetchAPI(`/v1/projects/${id}`),
   
   getRentals: (params: Record<string, any> = {}) => {
     const searchParams = new URLSearchParams();
