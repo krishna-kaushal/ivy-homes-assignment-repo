@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 
 export default function Favourites() {
@@ -50,7 +51,7 @@ export default function Favourites() {
               >
                 ✕
               </button>
-              <div className="p-4 border-b">
+              <div className="p-4 border-b mt-2">
                 <h3 className="font-bold text-lg">
                   {item.bedroom} BHK in {item.apartment_name || item.locality}
                 </h3>
@@ -61,6 +62,17 @@ export default function Favourites() {
                   ₹{item.price?.toLocaleString('en-IN')}
                 </p>
                 <p className="text-gray-600">Area: {item.carpet_area} sq.ft</p>
+              </div>
+              <div className="p-4 bg-gray-50 flex justify-between items-center">
+                <Link to={`/listing/${item.listing_id}`} className="text-blue-600 hover:underline font-medium">
+                  View Details
+                </Link>
+                <button 
+                  onClick={() => handleRemove(item.listing_id)}
+                  className="text-red-500 hover:underline text-sm font-medium"
+                >
+                  Remove
+                </button>
               </div>
             </div>
           ))}
