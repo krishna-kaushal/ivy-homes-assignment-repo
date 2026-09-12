@@ -15,24 +15,16 @@ export default function Rentals() {
     furnishing: ''
   });
 
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-
   const fetchRentals = async (currentOffset: number) => {
     setLoading(true);
     try {
-      const [data, favData] = await Promise.all([
-        api.getRentals({
-          offset: currentOffset,
-          limit: LIMIT,
-          ...filters
-        }),
-        api.getFavourites().catch(() => ({ results: [] }))
-      ]);
+      const data = await api.getRentals({
+        offset: currentOffset,
+        limit: LIMIT,
+        ...filters
+      });
       setRentals(data.results || []);
       setHasMore(data.has_more);
-      
-      const favSet = new Set<string>((favData.results || []).map((f: any) => f.listing_id));
-      setSavedIds(favSet);
     } catch (err) {
       console.error(err);
     } finally {
