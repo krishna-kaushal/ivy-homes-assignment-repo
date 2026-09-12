@@ -144,10 +144,14 @@
       "endpoint": "/v1/listings",
       "category": "completeness",
       "documented": "Returns active sale listings in your city. Inactive listings are excluded server side.",
-      "actual": "The endpoint returns both active (is_live: true) and inactive (is_live: false) listings indiscriminately.",
-      "how_found": "Calculated active listings to be 2792 out of 3500 total retrievable.",
+      "actual": "Returns inactive listings (is_live: false) mixed in with the results.",
+      "how_found": "Downloaded the entire dataset and found hundreds of records with is_live set to false.",
       "impact": "Frontend will display withdrawn/expired listings if not manually filtered.",
-      "evidence": []
+      "evidence": [
+        "SQU-6001937",
+        "DWE-6002796",
+        "MAG-6000794"
+      ]
     },
     {
       "endpoint": "/v1/listings",
