@@ -44,14 +44,7 @@ export default function Favourites() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {favourites.map((item) => (
             <div key={item.listing_id} className="bg-white rounded-lg shadow overflow-hidden relative">
-              <button 
-                onClick={() => handleRemove(item.listing_id)}
-                className="absolute top-4 right-4 text-red-500 bg-white rounded-full p-1 shadow hover:bg-red-50"
-                title="Remove from favourites"
-              >
-                ✕
-              </button>
-              <div className="p-4 border-b mt-2">
+              <div className="p-4 border-b">
                 <h3 className="font-bold text-lg">
                   {item.bedroom} BHK in {item.apartment_name || item.locality}
                 </h3>
